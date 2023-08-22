@@ -7,6 +7,17 @@ export const config = {
 export default async function handler(req) {
   try {
     const { chatId: chatIdFromParam, message } = await req.json()
+    // validate message data
+    if (!message || typeof message !== 'string' || message.length > 200) {
+      return new Response(
+        {
+          message: 'message is required and must be less than 200 characters',
+        },
+        {
+          status: 422,
+        }
+      )
+    }
     let chatId = chatIdFromParam
     console.log('MESSAGE: ', message)
 
@@ -58,6 +69,7 @@ export default async function handler(req) {
       chatMessages = json.messages || []
     }
 
+    // Create the messages to include in chat history for historical chat context
     const messagesToInclude = []
     // chatMessages are ordered oldest to newest, but we want to include the
     // newest messages, so reverse the array
@@ -117,6 +129,13 @@ export default async function handler(req) {
     )
     return new Response(stream)
   } catch (e) {
-    console.log('AN ERROR OCCURED IN SENDMESSAGE> ', e)
+    return new Response(
+      {
+        message: 'An error occurred in send message',
+      },
+      {
+        status: 500,
+      }
+    )
   }
 }

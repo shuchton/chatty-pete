@@ -9,15 +9,35 @@ export default async function handler(req, res) {
     const db = client.db('ChattyPete')
 
     const { chatId, role, content } = req.body
-    console.log('chatId: ', chatId, 'role: ', role, 'content: ', content)
 
+    // validate the chatId
     let objectId
-
     try {
       objectId = new ObjectId(chatId)
     } catch (e) {
       res.status(422).json({
         message: 'Invalid chat ID',
+      })
+      return
+    }
+
+    // validate message data
+    if (
+      !content ||
+      typeof content !== 'string' ||
+      (role === 'user' && content.length > 200) ||
+      (role === 'assistant' && content.length > 100000)
+    ) {
+      res.status(422).json({
+        message: 'content is required and must be less than 200 characters',
+      })
+      return
+    }
+
+    // validate the roll
+    if (role !== 'user' && role !== 'assistant') {
+      res.status(422).json({
+        message: 'role must be either "user" or "assistant"',
       })
       return
     }
